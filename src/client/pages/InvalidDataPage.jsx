@@ -37,6 +37,8 @@ export default function InvalidDataPage({ user, onLogout }) {
     can_delete: false,
   });
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [deletedBuffer, setDeletedBuffer] = useState(null); 
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -150,6 +152,54 @@ export default function InvalidDataPage({ user, onLogout }) {
     contextMenu.visible,
     selectedRows.size,
   ]);
+
+  useEffect(() => {
+  if (!deletedBuffer) return;
+
+  const timer = setTimeout(async () => {
+    await Promise.all(
+      deletedBuffer.ids.map(id =>
+        fetch(`/api/invaliddata/${id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actor: localStorage.getItem("user"),
+          }),
+        })
+      )
+    );
+
+    setDeletedBuffer(null);
+    setToast(null);
+  }, 5000); // 5 seconds undo window
+
+  return () => clearTimeout(timer);
+}, [deletedBuffer]);
+
+  useEffect(() => {
+  const handleDeleteKey = (e) => {
+    const tag = document.activeElement?.tagName?.toLowerCase();
+
+    // ❌ Don't trigger while typing in input
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+    // Only trigger on Delete key
+    if (e.key === "Delete") {
+      if (selectedRows.size > 0 && perms.can_delete) {
+        e.preventDefault();
+        setConfirmDeleteOpen(true);
+      }
+    }
+  };
+
+  window.addEventListener("keydown", handleDeleteKey);
+
+  return () => {
+    window.removeEventListener("keydown", handleDeleteKey);
+  };
+}, [selectedRows.size, perms.can_delete]);
+
+  
   useEffect(() => {
     const handleKeyPress = (e) => {
       const tag = document.activeElement?.tagName?.toLowerCase();
@@ -460,7 +510,100 @@ export default function InvalidDataPage({ user, onLogout }) {
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
+  const selectedIds = [...selectedRows];
+const contextActions = [];
+
+// 🔹 MULTIPLE → Export Selected
+if (selectedIds.length > 1) {
+  contextActions.push({
+    label: `Export Selected (${selectedIds.length})`,
+    icon: "📤",
+    onClick: () => {
+      const selectedRecords = sortedInvalid.filter(i =>
+        selectedIds.includes(i.id)
+      );
+
+      const headers = [
+        "ID",
+        "Name",
+        "Department",
+        "Current Salary",
+        "KPI",
+        "Attendance",
+        "Behavior",
+        "Manager",
+      ];
+
+      const rows = selectedRecords.map(i => [
+        i.id,
+        i.name,
+        i.department,
+        i.currentsalary,
+        i.kpiscore,
+        i.attendance,
+        i.behavioralrating,
+        i.managerrating,
+      ]);
+
+      const csv = [headers, ...rows]
+        .map(r => r.map(c => `"${c ?? ""}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "selected_invalid.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+
+      setContextMenu({ visible: false, x: 0, y: 0 });
+    }
+  });
+}
+
+// 🔹 DELETE (single or multi)
+if (selectedIds.length >= 1 && perms.can_delete) {
+  contextActions.push({
+    label:
+      selectedIds.length === 1
+        ? "Delete Record"
+        : `Delete Selected (${selectedIds.length})`,
+    icon: "🗑",
+    onClick: () => {
+      setConfirmDeleteOpen(true);
+      setContextMenu({ visible: false, x: 0, y: 0 });
+    }
+  });
+}
   const totalPages = Math.max(1, Math.ceil(filteredInvalid.length / pageSize));
+
+useEffect(() => {
+  const handleSelectAll = (e) => {
+    const tag = document.activeElement?.tagName?.toLowerCase();
+
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+    if (e.ctrlKey && e.key.toLowerCase() === "a") {
+      e.preventDefault();
+
+      const currentPageIds = paginated.map(item => item.id);
+
+      setSelectedRows(prev => {
+        if (prev.size === currentPageIds.length) {
+          return new Set(); // deselect all
+        }
+        return new Set(currentPageIds); // select all
+      });
+    }
+  };
+
+  window.addEventListener("keydown", handleSelectAll);
+
+  return () => {
+    window.removeEventListener("keydown", handleSelectAll);
+  };
+}, [paginated]);
 
   useEffect(() => {
     const pages = Math.ceil(filteredInvalid.length / pageSize) || 1;
@@ -707,9 +850,7 @@ export default function InvalidDataPage({ user, onLogout }) {
   visible={contextMenu.visible}
   x={contextMenu.x}
   y={contextMenu.y}
-  selectedCount={selectedRows.size}
-  canDelete={perms.can_delete}
-  onDelete={() => setConfirmDeleteOpen(true)}
+  actions={contextActions}
 />
       </main>
       <Modal
@@ -818,24 +959,29 @@ export default function InvalidDataPage({ user, onLogout }) {
                   cursor: "pointer",
                 }}
                 onClick={async () => {
-                  await Promise.all(
-                    [...selectedRows].map((id) =>
-                      fetch(`/api/invaliddata/${id}`, {
-                        method: "DELETE",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          actor: localStorage.getItem("user"),
-                        }),
-                      }),
-                    ),
-                  );
+  const idsToDelete = [...selectedRows];
 
-                  setSelectedRows(new Set());
-                  setContextMenu({ visible: false, x: 0, y: 0 });
-                  setConfirmDeleteOpen(false);
+  const recordsToDelete = invalidData.filter(item =>
+    idsToDelete.includes(item.id)
+  );
 
-                  fetchInvalid();
-                }}
+  // 1️⃣ Remove immediately from UI
+  setInvalidData(prev =>
+    prev.filter(item => !idsToDelete.includes(item.id))
+  );
+
+  // 2️⃣ Store deleted records temporarily
+  setDeletedBuffer({
+    records: recordsToDelete,
+    ids: idsToDelete,
+  });
+
+  setToast(`${idsToDelete.length} record(s) deleted`);
+
+  setSelectedRows(new Set());
+  setContextMenu({ visible: false, x: 0, y: 0 });
+  setConfirmDeleteOpen(false);
+}}
               >
                 Delete
               </button>
@@ -843,6 +989,49 @@ export default function InvalidDataPage({ user, onLogout }) {
           </div>
         </Modal>
       )}
+      {toast && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: "20px",
+      right: "20px",
+      background: "#1f2937",
+      color: "white",
+      padding: "14px 20px",
+      borderRadius: "8px",
+      boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+      display: "flex",
+      gap: "16px",
+      alignItems: "center",
+      zIndex: 9999,
+    }}
+  >
+    <span>{toast}</span>
+
+    {deletedBuffer && (
+      <button
+        onClick={() => {
+          setInvalidData(prev => [
+            ...deletedBuffer.records,
+            ...prev,
+          ]);
+
+          setDeletedBuffer(null);
+          setToast(null);
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: "#60a5fa",
+          cursor: "pointer",
+          fontWeight: "600",
+        }}
+      >
+        UNDO
+      </button>
+    )}
+  </div>
+)}
     </>
   );
 }

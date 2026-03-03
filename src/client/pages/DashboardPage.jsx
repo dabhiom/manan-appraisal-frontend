@@ -15,6 +15,8 @@ import logo from "../pages/logo.png";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
 import ContextMenu from "../components/ContextMenu";
+import ChatButton from "../components/ChatButton";  // chatbot UI
+
 
 function DashboardPage({ user, onLogout }) {
   const [employees, setEmployees] = useState([]);
@@ -47,6 +49,32 @@ function DashboardPage({ user, onLogout }) {
     x: 0,
     y: 0,
   });
+
+  const [toast, setToast] = useState(null);
+  const [deletedBuffer, setDeletedBuffer] = useState(null);
+
+  useEffect(() => {
+  if (!deletedBuffer) return;
+
+  const timer = setTimeout(async () => {
+    await Promise.all(
+      deletedBuffer.ids.map(id =>
+        fetch(`/api/employeedetails/${id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actor: localStorage.getItem("user"),
+          }),
+        })
+      )
+    );
+
+    setDeletedBuffer(null);
+    setToast(null);
+  }, 5000);
+
+  return () => clearTimeout(timer);
+}, [deletedBuffer]);
 
   const navigate = useNavigate();
   const fetchEmployees = async () => {
@@ -183,6 +211,32 @@ function DashboardPage({ user, onLogout }) {
     contextMenu.visible,
     selectedRows,
   ]);
+
+  useEffect(() => {
+  const handleDeleteKey = (e) => {
+    const tag = document.activeElement?.tagName?.toLowerCase();
+
+    // ❌ Don't trigger while typing in input
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+    // Only trigger on Delete key
+    if (e.key === "Delete") {
+      if (selectedRows.size > 0 && perms.can_delete) {
+        e.preventDefault();
+        setConfirmDeleteOpen(true);
+      }
+    }
+  };
+
+  window.addEventListener("keydown", handleDeleteKey);
+
+  return () => {
+    window.removeEventListener("keydown", handleDeleteKey);
+  };
+}, [selectedRows.size, perms.can_delete]);
+
+  
+
   useEffect(() => {
     const handleKeyPress = (e) => {
       const tag = document.activeElement?.tagName?.toLowerCase();
@@ -201,6 +255,37 @@ function DashboardPage({ user, onLogout }) {
       window.removeEventListener("keydown", handleKeyPress);
     };
   }, []);
+
+    const paginatedEmployees = filteredEmployees.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+useEffect(() => {
+  const handleSelectAll = (e) => {
+    const tag = document.activeElement?.tagName?.toLowerCase();
+
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+    if (e.ctrlKey && e.key.toLowerCase() === "a") {
+      e.preventDefault();
+
+      const currentPageIds = paginatedEmployees.map(emp => emp.id);
+
+      setSelectedRows(prev => {
+        if (prev.size === currentPageIds.length) {
+          return new Set(); // deselect
+        }
+        return new Set(currentPageIds); // select all
+      });
+    }
+  };
+
+  window.addEventListener("keydown", handleSelectAll);
+
+  return () => {
+    window.removeEventListener("keydown", handleSelectAll);
+  };
+}, [paginatedEmployees]);
 
   // Filter and sort employees
   useEffect(() => {
@@ -516,11 +601,71 @@ function DashboardPage({ user, onLogout }) {
     }
   };
 
-  const paginatedEmployees = filteredEmployees.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
 
+const selectedIds = [...selectedRows];
+const contextActions = [];
+
+// 🔹 MULTIPLE ROWS → Export Selected
+if (selectedIds.length > 1) {
+  contextActions.push({
+    label: `Export Selected (${selectedIds.length})`,
+    icon: "📤",
+    onClick: () => {
+      const selectedRecords = filteredEmployees.filter(e =>
+  selectedIds.includes(e.id)
+);
+
+      const headers = [
+        "ID",
+        "Name",
+        "Department",
+        "Current Salary",
+        "Grade",
+        "Increment (%)",
+        "Incremented Salary",
+      ];
+
+      const rows = selectedRecords.map(e => [
+        e.id,
+        e.name,
+        e.department,
+        e.currentsalary,
+        e.grade,
+        e.increment,
+        e.incrementedsalary,
+      ]);
+
+      const csv = [headers, ...rows]
+        .map(r => r.map(c => `"${c ?? ""}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "selected_employees.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+
+      setContextMenu({ visible: false, x: 0, y: 0 });
+    }
+  });
+}
+
+// 🔹 DELETE (single or multi)
+if (selectedIds.length >= 1 && perms.can_delete) {
+  contextActions.push({
+    label:
+      selectedIds.length === 1
+        ? "Delete Record"
+        : `Delete Selected (${selectedIds.length})`,
+    icon: "🗑",
+    onClick: () => {
+      setConfirmDeleteOpen(true);
+      setContextMenu({ visible: false, x: 0, y: 0 });
+    }
+  });
+}
   const totalPages = Math.ceil(filteredEmployees.length / pageSize);
 
   if (loading) {
@@ -732,13 +877,11 @@ function DashboardPage({ user, onLogout }) {
             setSelectedRows={setSelectedRows}
           />
         </motion.div>
-        <ContextMenu
+      <ContextMenu
   visible={contextMenu.visible}
   x={contextMenu.x}
   y={contextMenu.y}
-  selectedCount={selectedRows.size}
-  canDelete={perms.can_delete}
-  onDelete={() => setConfirmDeleteOpen(true)}
+  actions={contextActions}
 />
       </main>
 
@@ -884,25 +1027,29 @@ function DashboardPage({ user, onLogout }) {
                   cursor: "pointer",
                 }}
                 onClick={async () => {
-                  await Promise.all(
-                    [...selectedRows].map((id) =>
-                      fetch(`/api/employeedetails/${id}`, {
-                        method: "DELETE",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          actor: localStorage.getItem("user"),
-                        }),
-                      }),
-                    ),
-                  );
+  const idsToDelete = [...selectedRows];
 
-                  setSelectedRows(new Set());
-                  setContextMenu({ visible: false, x: 0, y: 0 });
-                  setConfirmDeleteOpen(false);
+  const recordsToDelete = employees.filter(e =>
+    idsToDelete.includes(e.id)
+  );
 
-                  const empRes = await fetch("/api/employees");
-                  if (empRes.ok) setEmployees(await empRes.json());
-                }}
+  // 1️⃣ Remove from UI immediately
+  setEmployees(prev =>
+    prev.filter(e => !idsToDelete.includes(e.id))
+  );
+
+  // 2️⃣ Store deleted records in buffer
+  setDeletedBuffer({
+    records: recordsToDelete,
+    ids: idsToDelete,
+  });
+
+  setToast(`${idsToDelete.length} record(s) deleted`);
+
+  setSelectedRows(new Set());
+  setContextMenu({ visible: false, x: 0, y: 0 });
+  setConfirmDeleteOpen(false);
+}}
               >
                 Delete
               </button>
@@ -910,6 +1057,50 @@ function DashboardPage({ user, onLogout }) {
           </div>
         </Modal>
       )}
+      {toast && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: "20px",
+      right: "20px",
+      background: "#1f2937",
+      color: "white",
+      padding: "14px 20px",
+      borderRadius: "8px",
+      boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+      display: "flex",
+      gap: "16px",
+      alignItems: "center",
+      zIndex: 9999,
+    }}
+  >
+    <span>{toast}</span>
+
+    {deletedBuffer && (
+      <button
+        onClick={() => {
+          setEmployees(prev => [
+            ...deletedBuffer.records,
+            ...prev,
+          ]);
+
+          setDeletedBuffer(null);
+          setToast(null);
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: "#60a5fa",
+          cursor: "pointer",
+          fontWeight: "600",
+        }}
+      >
+        UNDO
+      </button>
+    )}
+  </div>
+)}
+      <ChatButton />
     </>
   );
 }
