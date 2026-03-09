@@ -29,7 +29,13 @@ function LoginPage({ onLogin }) {
         const data = await res.json().catch(() => ({ error: res.statusText }))
         throw new Error(data.error || 'Login failed')
       }
+
       
+      const serverRes = await fetch('/api/server-time')
+      const serverData = await serverRes.json()
+
+      localStorage.setItem('serverStart', serverData.startTime)
+
       onLogin(username)
     } catch (err) {
       setIsError(true)

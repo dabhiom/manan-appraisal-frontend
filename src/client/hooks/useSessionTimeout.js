@@ -109,6 +109,7 @@ export function useSessionTimeout(onLogout, timeoutMs = 3600000, warningMs = nul
     // Clear local data
     localStorage.removeItem('auth')
     localStorage.removeItem('user')
+    localStorage.removeItem('loginTime')
 
     // Call the logout handler
     onLogout()

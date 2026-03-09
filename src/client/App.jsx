@@ -7,9 +7,28 @@ import { useSessionTimeout } from './hooks/useSessionTimeout'
 import { initSessionAwareFetch } from './hooks/sessionFetchInterceptor'
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('auth'))
-  const [user, setUser] = useState(localStorage.getItem('user') || '')
+const getInitialAuth = () => {
+  const auth = localStorage.getItem('auth')
+  const loginTime = localStorage.getItem('loginTime')
+  const SESSION_LIMIT = 1800000
 
+  if (!auth || !loginTime) return false
+
+  const now = Date.now()
+  if (now - loginTime > SESSION_LIMIT) {
+    localStorage.removeItem('auth')
+    localStorage.removeItem('user')
+    localStorage.removeItem('loginTime')
+    localStorage.removeItem('serverStart') 
+    return false
+  }
+
+  return true
+}
+
+const [isAuthenticated, setIsAuthenticated] = useState(getInitialAuth())
+const [user, setUser] = useState(localStorage.getItem('user') || '')
+  
   useEffect(() => {
     const theme = localStorage.getItem('theme') || 'hulk'
     document.body.setAttribute('data-theme', theme)
@@ -18,12 +37,37 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('auth')
     localStorage.removeItem('user')
+    localStorage.removeItem('loginTime')  // ADD THIS
+    localStorage.removeItem('serverStart') 
     setUser('')
     setIsAuthenticated(false)
   }
 
 // Session timeout: 30 minutes, warning 5 minutes before
   const resetSessionTimeout = useSessionTimeout(handleLogout, 1800000, 300000)
+
+useEffect(() => {
+  const checkServerRestart = async () => {
+    const saved = localStorage.getItem("serverStart");
+    if (!saved) return;
+
+    try {
+      const res = await fetch("/api/server-time");
+      const data = await res.json();
+
+      if (saved != data.startTime) {
+        handleLogout();
+      }
+    } catch {}
+  };
+
+  checkServerRestart();
+
+  const interval = setInterval(checkServerRestart, 5000); // check every 5 sec
+
+  return () => clearInterval(interval);
+
+}, []);
 
   // Initialize fetch interceptor to track API activity
   useEffect(() => {
@@ -35,6 +79,7 @@ function App() {
   const handleLogin = (username) => {
     localStorage.setItem('auth', 'hr')
     localStorage.setItem('user', username)
+    localStorage.setItem('loginTime', Date.now())   // ADD THIS
     setUser(username)
     setIsAuthenticated(true)
   }

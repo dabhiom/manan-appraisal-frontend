@@ -1061,10 +1061,14 @@ tbody tr:nth-child(even){
   color: var(--fg);
   border: 1px solid var(--border);
 }
-
-.typing {
-  font-style: italic;
-  opacity: 0.7;
+.message-time {
+  font-size: 11px;
+  margin-top: 4px;
+  opacity: 0.6;
+  text-align: right;
+}
+.message-row.bot .message-time {
+  text-align: left;
 }
 
 .chat-input {
@@ -1146,4 +1150,38 @@ tbody tr:nth-child(even){
 
 .chat-toggle-btn:hover::before {
   transform: translateX(120%);
+}
+
+.typing-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  height: 18px;
+}
+
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  background: var(--fg);
+  border-radius: 50%;
+  animation: bounce 1.2s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

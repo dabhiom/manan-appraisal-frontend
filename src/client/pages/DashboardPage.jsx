@@ -104,8 +104,13 @@ function DashboardPage({ user, onLogout }) {
   };
 
   // Fetch employees and permissions
-  useEffect(() => {
-    const fetchData = async () => {
+  const hasFetched = React.useRef(false)
+
+useEffect(() => {
+  if (hasFetched.current) return
+  hasFetched.current = true
+
+  const fetchData = async () => {
       try {
         setLoading(true);
         await fetchEmployees();

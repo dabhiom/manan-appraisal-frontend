@@ -35,12 +35,32 @@ useEffect(() => {
 }, []);
 
   const sendUserMessage = (text) => {
-    setMessages((old) => [...old, { sender: 'user', text }]);
-  };
+  setMessages((old) => [
+    ...old,
+    {
+      sender: 'user',
+      text,
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+  ]);
+};
 
   const sendBotMessage = (text) => {
-    setMessages((old) => [...old, { sender: 'bot', text }]);
-  };
+  setMessages((old) => [
+    ...old,
+    {
+      sender: 'bot',
+      text,
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+  ]);
+};
 
  // 👇 PUT THIS FIRST
 const replyWithTyping = (answer) => {
@@ -110,20 +130,23 @@ replyWithTyping(
        
 
       {messages.map((m, idx) => (
-        <div key={idx} className={`message-row ${m.sender}`}>
-          <div className="message-bubble">
-            {m.text}
-          </div>
-        </div>
-      ))}
+  <div key={idx} className={`message-row ${m.sender}`}>
+    <div className="message-bubble">
+      <div>{m.text}</div>
+      <div className="message-time">{m.time}</div>
+    </div>
+  </div>
+))}
 
       {typing && (
-        <div className="message-row bot">
-          <div className="message-bubble typing">
-            Typing...
-          </div>
-        </div>
-      )}
+  <div className="message-row bot">
+    <div className="message-bubble typing-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+)}
 
     </div>
 
