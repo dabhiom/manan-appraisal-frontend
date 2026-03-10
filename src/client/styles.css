@@ -378,6 +378,61 @@ main {
   border-radius: 6px;
   height: var(--control-h);
 }
+/* Search input */
+#q {
+  appearance: none;
+  -webkit-appearance: none;
+
+  min-width: 230px;
+  height: var(--control-h);
+
+  padding: 8px 12px 8px 38px;
+
+  border-radius: 10px;
+  border: 1px solid var(--border);
+
+  background:
+    linear-gradient(
+      to bottom,
+      var(--surface),
+      color-mix(in srgb, var(--surface) 85%, black)
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15zm10.5 3-4.35-4.35'/%3E%3C/svg%3E");
+
+  background-repeat: no-repeat;
+  background-position: center, 12px center;
+  background-size: 100%, 16px;
+
+  color: var(--fg);
+  font-weight: 500;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 3px 10px rgba(0,0,0,0.25);
+
+  transition: all 0.18s ease;
+}
+
+/* Hover */
+#q:hover {
+  border-color: var(--accent);
+}
+
+/* Focus */
+#q:focus {
+  outline: none;
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 3px 10px rgba(0,0,0,0.25);
+}
+
+/* Placeholder */
+#q::placeholder {
+  color: var(--muted);
+}
 
 #controls select {
   background: var(--surface);
