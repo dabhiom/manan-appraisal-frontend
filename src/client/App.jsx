@@ -48,25 +48,31 @@ const [user, setUser] = useState(localStorage.getItem('user') || '')
 
 useEffect(() => {
   const checkServerRestart = async () => {
-    const saved = localStorage.getItem("serverStart");
-    if (!saved) return;
-
     try {
+      const saved = localStorage.getItem("serverStart");
+
       const res = await fetch("/api/server-time");
       const data = await res.json();
 
-      if (saved != data.startTime) {
+      if (!saved) {
+        localStorage.setItem("serverStart", data.startTime);
+        return;
+      }
+
+      if (String(saved) !== String(data.startTime)) {
         handleLogout();
       }
-    } catch {}
+
+    } catch (err) {
+      console.error("Server check failed");
+    }
   };
 
   checkServerRestart();
 
-  const interval = setInterval(checkServerRestart, 5000); // check every 5 sec
+  const interval = setInterval(checkServerRestart, 5000);
 
   return () => clearInterval(interval);
-
 }, []);
 
   // Initialize fetch interceptor to track API activity
