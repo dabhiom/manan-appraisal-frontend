@@ -310,13 +310,15 @@ h1 {
   top:16px;
   right:18px;
 
-  width:32px;
-  height:32px;
+  width:36px;
+  height:36px;
 
   opacity:0.95;
 
-  filter: drop-shadow(0 3px 5px rgb(255, 255, 255));
-
+filter:
+  drop-shadow(0 0 4px rgba(255,255,255,0.6))
+  drop-shadow(0 0 4px var(--accent))
+  drop-shadow(0 0 12px rgba(255,255,255,0.4));
   transition: transform 0.25s ease, opacity 0.25s ease;
 
   animation: iconFloat 5s ease-in-out infinite;
@@ -946,20 +948,36 @@ tbody tr:nth-child(even){
 
 .action-btn.delete:hover {
   background: var(--accent-4);
+    color: var(--bg);
+}
 .field-error { color: var(--accent-4); font-size: 12px; margin-top: 6px; }
-  color: var(--bg);
+.theme-btn{
+  width:36px;
+  height:36px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  cursor:pointer;
+  transition: all 0.2s ease;
 }
 
+.theme-btn:hover{
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
 
-.theme-btn{
-  background: rgba(255,255,255,0.06);
-  color: var(--fg);
-  border: 1px solid var(--border);
-  padding: 5px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  
-  position: relative;
+.theme-icon{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  pointer-events:none;
 }
 #summary .card {
   position: relative;

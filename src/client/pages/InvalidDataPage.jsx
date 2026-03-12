@@ -13,6 +13,8 @@ import AddUserForm from "../components/AddUserForm";
 import SetRoleForm from "../components/SetRoleForm";
 import { motion } from "framer-motion";
 import ContextMenu from "../components/ContextMenu";
+import themeIcon from "../../assets/icons/theme-color.png";
+
 
 export default function InvalidDataPage({ user, onLogout }) {
   const [invalidData, setInvalidData] = useState([]);
@@ -38,6 +40,15 @@ export default function InvalidDataPage({ user, onLogout }) {
   });
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  useEffect(() => {
+  if (!toast) return;
+
+  const timer = setTimeout(() => {
+    setToast(null);
+  }, 2500); // toast disappears after 2.5s
+
+  return () => clearTimeout(timer);
+}, [toast]);
   const [deletedBuffer, setDeletedBuffer] = useState(null); 
   const [contextMenu, setContextMenu] = useState({
     visible: false,
@@ -511,7 +522,28 @@ export default function InvalidDataPage({ user, onLogout }) {
     currentPage * pageSize,
   );
   const selectedIds = [...selectedRows];
-const contextActions = [];
+ const contextActions = [];
+ // 🔹 COPY AS EXCEL (single row)
+if (selectedIds.length === 1) {
+  contextActions.push({
+    label: "Copy as Excel",
+    icon: "📊",
+    onClick: () => {
+      const emp = sortedInvalid.find(i => i.id === selectedIds[0]);
+      if (!emp) return;
+
+      const text =
+`ID\tName\tDepartment\tCurrent Salary\tKPI\tAttendance\tBehavior\tManager
+${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.kpiscore ?? ""}\t${emp.attendance ?? ""}\t${emp.behavioralrating ?? ""}\t${emp.managerrating ?? ""}`;
+
+      navigator.clipboard.writeText(text);
+
+      setToast(`Copied ${emp.id} to Excel`);
+      setContextMenu({ visible: false, x: 0, y: 0 });
+    }
+  });
+}
+ 
 
 // 🔹 MULTIPLE → Export Selected
 if (selectedIds.length > 1) {
@@ -671,14 +703,14 @@ useEffect(() => {
           />
         </div>
         <h1>Invalid Data</h1>
-        <button
-          type="button"
-          className="theme-btn"
-          title="Press (T) to Toggle Theme"
-          onClick={handleToggleTheme}
-        >
-          🌙
-        </button>
+    <button
+      type="button"
+      className="theme-btn"
+      title="Press (T) to Toggle Theme"
+      onClick={handleToggleTheme}
+    >
+      <img src={themeIcon} alt="Theme" className="theme-icon" />
+    </button>
         <UserMenu
           user={user}
           onLogout={onLogout}

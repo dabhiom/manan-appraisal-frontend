@@ -13,6 +13,7 @@ const ChatButton = () => {
 
       <button
         className="chat-toggle-btn"
+        title='Chat Assistant'
         onClick={() => setOpen(o => !o)}
       >
         💬

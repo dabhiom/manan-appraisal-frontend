@@ -16,6 +16,7 @@ import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
 import ContextMenu from "../components/ContextMenu";
 import ChatButton from "../components/ChatButton";  // chatbot UI
+import themeIcon from "../../assets/icons/theme-color.png";
 
 
 function DashboardPage({ user, onLogout }) {
@@ -51,6 +52,15 @@ function DashboardPage({ user, onLogout }) {
   });
 
   const [toast, setToast] = useState(null);
+  useEffect(() => {
+  if (!toast) return;
+
+  const timer = setTimeout(() => {
+    setToast(null);
+  }, 2500); // toast disappears after 2.5s
+
+  return () => clearTimeout(timer);
+}, [toast]);
   const [deletedBuffer, setDeletedBuffer] = useState(null);
 
   useEffect(() => {
@@ -612,6 +622,26 @@ useEffect(() => {
 
 const selectedIds = [...selectedRows];
 const contextActions = [];
+// 🔹 COPY AS EXCEL (single row)
+if (selectedIds.length === 1) {
+  contextActions.push({
+    label: "Copy as Excel",
+    icon: "📊",
+    onClick: () => {
+      const emp = filteredEmployees.find(e => e.id === selectedIds[0]);
+      if (!emp) return;
+
+      const text =
+`ID\tName\tDepartment\tCurrent Salary\tGrade\tIncrement (%)\tIncremented Salary
+${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.grade ?? ""}\t${emp.increment ?? ""}\t${emp.incrementedsalary ?? ""}`;
+
+      navigator.clipboard.writeText(text);
+
+      setToast(`Copied ${emp.id} to Excel`);
+      setContextMenu({ visible: false, x: 0, y: 0 });
+    }
+  });
+}
 
 // 🔹 MULTIPLE ROWS → Export Selected
 if (selectedIds.length > 1) {
@@ -736,7 +766,7 @@ if (selectedIds.length >= 1 && perms.can_delete) {
           title="Press (T) to Toggle Theme"
           onClick={handleToggleTheme}
         >
-          🌙
+          <img src={themeIcon} alt="Theme" className="theme-icon" />
         </button>
 
         <UserMenu
