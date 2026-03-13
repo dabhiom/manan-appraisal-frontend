@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import UserMenu from "../components/UserMenu";
 import EmployeeTable from "../components/EmployeeTable";
 import Modal from "../components/Modal";
@@ -275,6 +275,25 @@ useEffect(() => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
+  useEffect(() => {
+  const handleFindShortcut = (e) => {
+    if (e.ctrlKey && e.key.toLowerCase() === "f") {
+      e.preventDefault(); // stop browser find
+
+      const input = document.getElementById("q");
+      if (input) {
+        input.focus();
+        input.select(); // highlight existing text
+      }
+    }
+  };
+
+  window.addEventListener("keydown", handleFindShortcut);
+
+  return () => {
+    window.removeEventListener("keydown", handleFindShortcut);
+  };
+}, []);
 useEffect(() => {
   const handleSelectAll = (e) => {
     const tag = document.activeElement?.tagName?.toLowerCase();
@@ -310,13 +329,25 @@ useEffect(() => {
     let filtered = [...employees];
 
     // Apply filters
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (e) =>
-          String(e.id).includes(searchQuery) ||
-          (e.name && e.name.toLowerCase().includes(searchQuery.toLowerCase())),
-      );
-    }
+if (searchQuery) {
+  const q = searchQuery.toLowerCase()
+
+  filtered = filtered.filter((emp) =>
+    [
+      emp.id,
+      emp.name,
+      emp.department,
+      emp.grade,
+      emp.currentsalary,
+      emp.increment,
+      emp.incrementedsalary
+    ]
+      .filter(Boolean)
+      .some((val) =>
+        String(val).toLowerCase().includes(q)
+      )
+  )
+}
 
     if (departmentFilter) {
       filtered = filtered.filter((e) => e.department === departmentFilter);
@@ -788,12 +819,15 @@ if (selectedIds.length >= 1 && perms.can_delete) {
           transition={{ duration: 0.35 }}
         >
           <input
-            id="q"
-            type="search"
-            placeholder="Search name or ID"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+  id="q"
+  type="search"
+  placeholder="Search ID, Name or Department"
+  value={searchQuery}
+  onChange={(e) => {
+    setSearchQuery(e.target.value)
+    setCurrentPage(1)
+  }}
+/>
           <select
             id="dept"
             value={departmentFilter}
@@ -932,6 +966,7 @@ if (selectedIds.length >= 1 && perms.can_delete) {
         >
           <EmployeeTable
             employees={paginatedEmployees}
+            searchQuery={searchQuery}
             onSort={handleSort}
             onEdit={handleEdit}
             onViewDetails={handleViewDetails}

@@ -328,17 +328,17 @@ h1 {
 
   transition: transform 0.25s ease, opacity 0.25s ease;
 
-  animation: iconFloat 5s ease-in-out infinite;
+  animation: iconZoom 3s ease-in-out infinite;
 }
 
 .card:hover .card-icon{
-  transform: translateY(-3px) scale(1.12) rotate(6deg);
+  transform: scale(1.15) rotate(6deg);
   opacity:1;
 }
 
-@keyframes iconFloat{
-  0%,100%{ transform: translateY(0px); }
-  50%{ transform: translateY(-3px); }
+@keyframes iconZoom{
+  0%,100%{ transform: scale(1); }
+  50%{ transform: scale(1.12); }
 }
 .card select {
   width: 100%;
@@ -1426,4 +1426,9 @@ select option {
 #nprogress .spinner {
   display: none !important;
 }
-
+.search-highlight {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+  padding: 2px 4px;
+  font-weight: 600;
+  border-radius: 4px;
+}

@@ -130,6 +130,26 @@ export default function InvalidDataPage({ user, onLogout }) {
   }, []);
 
   useEffect(() => {
+  const handleFindShortcut = (e) => {
+    if (e.ctrlKey && e.key.toLowerCase() === "f") {
+      e.preventDefault(); // stop browser find
+
+      const input = document.getElementById("q");
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  };
+
+  window.addEventListener("keydown", handleFindShortcut);
+
+  return () => {
+    window.removeEventListener("keydown", handleFindShortcut);
+  };
+}, []);
+
+  useEffect(() => {
     const handleEsc = (e) => {
       if (e.key !== "Escape") return;
 
@@ -432,14 +452,28 @@ export default function InvalidDataPage({ user, onLogout }) {
 
   // filtering + pagination
   const filteredInvalid = invalidData.filter((item) => {
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      if (
-        !String(item.id).toLowerCase().includes(q) &&
-        !(item.name && item.name.toLowerCase().includes(q))
+  if (searchQuery) {
+  const q = searchQuery.toLowerCase()
+
+  if (
+    ![
+      item.id,
+      item.name,
+      item.department,
+      item.currentsalary,
+      item.kpiscore,
+      item.attendance,
+      item.behavioralrating,
+      item.managerrating
+    ]
+      .filter(Boolean)
+      .some((val) =>
+        String(val).toLowerCase().includes(q)
       )
-        return false;
-    }
+  ) {
+    return false
+  }
+}
     if (departmentFilter && item.department !== departmentFilter) return false;
     if (gradeFilter && item.grade !== gradeFilter) return false;
     // invalid-specific filter mode
@@ -730,12 +764,15 @@ useEffect(() => {
           transition={{ duration: 0.35 }}
         >
           <input
-            id="q"
-            type="search"
-            placeholder="Search name or ID"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+  id="q"
+  type="search"
+  placeholder="Search ID, Name or Department"
+  value={searchQuery}
+  onChange={(e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  }}
+/>
           <select
             id="dept"
             value={departmentFilter}
@@ -889,6 +926,7 @@ useEffect(() => {
         >
           <EmployeeTable
             employees={paginated}
+            searchQuery={searchQuery}
             onSort={handleSort}
             onEdit={handleEdit}
             onViewDetails={handleViewDetails}

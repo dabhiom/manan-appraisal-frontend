@@ -4,6 +4,7 @@ import salaryIcon from "../../assets/icons/avg-salary.png";
 import incIcon from "../../assets/icons/avg-increment.png";
 import incSalaryIcon from "../../assets/icons/avg-incremented.png";
 import { motion } from "framer-motion";
+import CountUp from "react-countup";
 
 function Summary({ employees }) {
   const stats = useMemo(() => {
@@ -93,9 +94,9 @@ function Summary({ employees }) {
   <img src={empIcon} className="card-icon" alt="employees" />
 
   <div className="k">Employees</div>
-  <div className="v" id="sum-count">
-    {stats.count}
-  </div>
+<div className="v" id="sum-count">
+  <CountUp end={stats.count} duration={1.7} />
+</div>
 
 </motion.div>
      <motion.div
@@ -109,9 +110,9 @@ function Summary({ employees }) {
   <img src={salaryIcon} className="card-icon" alt="salary"/>
 
   <div className="k">Avg Salary</div>
-  <div className="v" id="sum-avg-sal">
-    {formatMoney(stats.avgSalary)}
-  </div>
+<div className="v" id="sum-avg-sal">
+  $<CountUp end={stats.avgSalary} duration={1.7} separator="," decimals={0} />
+</div>
 </motion.div>
     <motion.div
   className="card"
@@ -124,9 +125,9 @@ function Summary({ employees }) {
   <img src={incIcon} className="card-icon" alt="increment"/>
 
   <div className="k">Avg Increment %</div>
-  <div className="v" id="sum-avg-inc">
-    {stats.avgIncrement ? stats.avgIncrement.toFixed(2) : "0"}
-  </div>
+ <div className="v" id="sum-avg-inc">
+  <CountUp end={stats.avgIncrement} duration={1.7} decimals={2} />%
+</div>
 </motion.div>
     <motion.div
   className="card"
@@ -139,9 +140,9 @@ function Summary({ employees }) {
   <img src={incSalaryIcon} className="card-icon" alt="incremented salary"/>
 
   <div className="k">Avg Incremented</div>
-  <div className="v" id="sum-avg-incsal">
-    {formatMoney(stats.avgIncSalary)}
-  </div>
+<div className="v" id="sum-avg-incsal">
+  $<CountUp end={stats.avgIncSalary} duration={1.7} separator="," decimals={0} />
+</div>
 </motion.div>
     </motion.section>
   );
