@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 
-function UserMenu({ user, onLogout, onChangePassword, onAddUser, onSetRole, onDeleteUser, onToggleTheme }) {
+function UserMenu({ user, onLogout, onChangePassword, onAddUser, onSetRole, onDeleteUser, onActivityLog, onToggleTheme }) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef(null)
   let closeTimer = null;   // ✅ ADD HERE
@@ -65,6 +65,16 @@ function UserMenu({ user, onLogout, onChangePassword, onAddUser, onSetRole, onDe
         <button type="button" className="menu-item" id="menuDeleteUser" onClick={() => handleClick(onDeleteUser)}>
           Delete User
         </button>
+        {onActivityLog && (
+          <button
+            type="button"
+            className="menu-item"
+            id="menuActivityLog"
+            onClick={() => handleClick(onActivityLog)}
+          >
+            Activity Log
+          </button>
+        )}
         <hr />
         <button type="button" className="menu-item" id="menuTheme" onClick={() => handleTheme()}>
           Toggle Theme

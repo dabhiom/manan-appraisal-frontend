@@ -39,6 +39,7 @@ export default function InvalidDataPage({ user, onLogout }) {
     can_delete: false,
   });
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+ const [role, setRole] = useState("hr");
   const [toast, setToast] = useState(null);
   useEffect(() => {
   if (!toast) return;
@@ -90,6 +91,28 @@ export default function InvalidDataPage({ user, onLogout }) {
       setModal({ isOpen: true, title: "Error", content: e.message });
     }
   };
+
+  useEffect(() => {
+  const fetchRole = async () => {
+    const username = localStorage.getItem("user") || user;
+    if (!username) return;
+
+    try {
+      const res = await fetch("/api/whoami", {
+        headers: { "x-user": username }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRole((data.role || "hr").toLowerCase());
+      }
+    } catch (err) {
+      console.error("Role fetch failed", err);
+    }
+  };
+
+  fetchRole();
+}, [user]);
 
   useEffect(() => {
     const fetchPermissions = async () => {
@@ -685,7 +708,7 @@ useEffect(() => {
   if (loading) {
     console.log("INVALID PAGE PERMS:", perms);
     return (
-      <>
+      <div className="dashboard-page">
         <header>
           <div className="logo-wrap">
             <Skeleton circle={true} height={42} width={42} />
@@ -717,12 +740,12 @@ useEffect(() => {
           </div>
           <Skeleton count={10} height={42} style={{ marginTop: 15 }} />
         </main>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="dashboard-page">
       <header>
         <div className="logo-wrap">
           <img
@@ -752,6 +775,7 @@ useEffect(() => {
           onAddUser={handleAddUser}
           onSetRole={handleSetRole}
           onDeleteUser={handleDeleteUser}
+          onActivityLog={role === "admin" ? () => navigate("/activity") : null}
           onToggleTheme={handleToggleTheme}
         />
       </header>
@@ -1127,6 +1151,6 @@ useEffect(() => {
     )}
   </div>
 )}
-    </>
+    </div>
   );
 }

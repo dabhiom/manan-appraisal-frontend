@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import InvalidDataPage from './pages/InvalidDataPage'
+import ActivityLogPage from "./pages/ActivityLogPage";
 import { useSessionTimeout } from './hooks/useSessionTimeout'
 import { initSessionAwareFetch } from './hooks/sessionFetchInterceptor'
 import NProgress from "nprogress"
@@ -133,7 +134,16 @@ useEffect(() => {
             <Navigate to="/login" replace />
           } 
         />
+        
         <Route path="/invalid" element={isAuthenticated ? <InvalidDataPage user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />} />
+        <Route 
+          path="/activity" 
+          element={
+            isAuthenticated ? 
+            <ActivityLogPage user={user} onLogout={handleLogout} /> : 
+            <Navigate to="/login" replace />
+          } 
+        />
       </Routes>
     </Router>
   )

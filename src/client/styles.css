@@ -1432,3 +1432,18 @@ select option {
   font-weight: 600;
   border-radius: 4px;
 }
+.activity-log-page , .dashboard-page{
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 24 24'><path fill='%23FFF' stroke='%23000' stroke-width='2' d='M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.85a.5.5 0 0 0-.85.35Z'/></svg>") 6 2, auto;
+}
+.dashboard-page button,
+.dashboard-page input,
+.dashboard-page select {
+  cursor: pointer;
+}
+
+@keyframes buttonBlink {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+

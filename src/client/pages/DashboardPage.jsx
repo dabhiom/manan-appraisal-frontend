@@ -739,7 +739,7 @@ if (selectedIds.length >= 1 && perms.can_delete) {
 
   if (loading) {
     return (
-      <>
+      <div className="dashboard-page">
         <header>
           <div className="logo-wrap">
             <Skeleton circle={true} height={42} width={42} />
@@ -771,12 +771,12 @@ if (selectedIds.length >= 1 && perms.can_delete) {
           </div>
           <Skeleton count={10} height={42} style={{ marginTop: 15 }} />
         </main>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="dashboard-page">
       <header>
         <div className="logo-wrap">
           <img
@@ -807,6 +807,7 @@ if (selectedIds.length >= 1 && perms.can_delete) {
           onAddUser={handleAddUser}
           onSetRole={handleSetRole}
           onDeleteUser={handleDeleteUser}
+          onActivityLog={role === "admin" ? () => navigate("/activity") : null}
           onToggleTheme={handleToggleTheme}
         />
       </header>
@@ -1204,7 +1205,7 @@ if (selectedIds.length >= 1 && perms.can_delete) {
   </div>
 )}
       <ChatButton />
-    </>
+    </div>
   );
 }
 
