@@ -15,7 +15,6 @@ import { motion } from "framer-motion";
 import ContextMenu from "../components/ContextMenu";
 import themeIcon from "../../assets/icons/theme-color.png";
 
-
 export default function InvalidDataPage({ user, onLogout }) {
   const [invalidData, setInvalidData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,18 +38,18 @@ export default function InvalidDataPage({ user, onLogout }) {
     can_delete: false,
   });
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
- const [role, setRole] = useState("hr");
+  const [role, setRole] = useState("hr");
   const [toast, setToast] = useState(null);
   useEffect(() => {
-  if (!toast) return;
+    if (!toast) return;
 
-  const timer = setTimeout(() => {
-    setToast(null);
-  }, 2500); // toast disappears after 2.5s
+    const timer = setTimeout(() => {
+      setToast(null);
+    }, 2500); // toast disappears after 2.5s
 
-  return () => clearTimeout(timer);
-}, [toast]);
-  const [deletedBuffer, setDeletedBuffer] = useState(null); 
+    return () => clearTimeout(timer);
+  }, [toast]);
+  const [deletedBuffer, setDeletedBuffer] = useState(null);
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -93,26 +92,26 @@ export default function InvalidDataPage({ user, onLogout }) {
   };
 
   useEffect(() => {
-  const fetchRole = async () => {
-    const username = localStorage.getItem("user") || user;
-    if (!username) return;
+    const fetchRole = async () => {
+      const username = localStorage.getItem("user") || user;
+      if (!username) return;
 
-    try {
-      const res = await fetch("/api/whoami", {
-        headers: { "x-user": username }
-      });
+      try {
+        const res = await fetch("/api/whoami", {
+          headers: { "x-user": username },
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        setRole((data.role || "hr").toLowerCase());
+        if (res.ok) {
+          const data = await res.json();
+          setRole((data.role || "hr").toLowerCase());
+        }
+      } catch (err) {
+        console.error("Role fetch failed", err);
       }
-    } catch (err) {
-      console.error("Role fetch failed", err);
-    }
-  };
+    };
 
-  fetchRole();
-}, [user]);
+    fetchRole();
+  }, [user]);
 
   useEffect(() => {
     const fetchPermissions = async () => {
@@ -153,24 +152,24 @@ export default function InvalidDataPage({ user, onLogout }) {
   }, []);
 
   useEffect(() => {
-  const handleFindShortcut = (e) => {
-    if (e.ctrlKey && e.key.toLowerCase() === "f") {
-      e.preventDefault(); // stop browser find
+    const handleFindShortcut = (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "f") {
+        e.preventDefault(); // stop browser find
 
-      const input = document.getElementById("q");
-      if (input) {
-        input.focus();
-        input.select();
+        const input = document.getElementById("q");
+        if (input) {
+          input.focus();
+          input.select();
+        }
       }
-    }
-  };
+    };
 
-  window.addEventListener("keydown", handleFindShortcut);
+    window.addEventListener("keydown", handleFindShortcut);
 
-  return () => {
-    window.removeEventListener("keydown", handleFindShortcut);
-  };
-}, []);
+    return () => {
+      window.removeEventListener("keydown", handleFindShortcut);
+    };
+  }, []);
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -208,52 +207,51 @@ export default function InvalidDataPage({ user, onLogout }) {
   ]);
 
   useEffect(() => {
-  if (!deletedBuffer) return;
+    if (!deletedBuffer) return;
 
-  const timer = setTimeout(async () => {
-    await Promise.all(
-      deletedBuffer.ids.map(id =>
-        fetch(`/api/invaliddata/${id}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            actor: localStorage.getItem("user"),
+    const timer = setTimeout(async () => {
+      await Promise.all(
+        deletedBuffer.ids.map((id) =>
+          fetch(`/api/invaliddata/${id}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actor: localStorage.getItem("user"),
+            }),
           }),
-        })
-      )
-    );
+        ),
+      );
 
-    setDeletedBuffer(null);
-    setToast(null);
-  }, 5000); // 5 seconds undo window
+      setDeletedBuffer(null);
+      setToast(null);
+    }, 5000); // 5 seconds undo window
 
-  return () => clearTimeout(timer);
-}, [deletedBuffer]);
+    return () => clearTimeout(timer);
+  }, [deletedBuffer]);
 
   useEffect(() => {
-  const handleDeleteKey = (e) => {
-    const tag = document.activeElement?.tagName?.toLowerCase();
+    const handleDeleteKey = (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase();
 
-    // ❌ Don't trigger while typing in input
-    if (tag === "input" || tag === "textarea" || tag === "select") return;
+      // ❌ Don't trigger while typing in input
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
 
-    // Only trigger on Delete key
-    if (e.key === "Delete") {
-      if (selectedRows.size > 0 && perms.can_delete) {
-        e.preventDefault();
-        setConfirmDeleteOpen(true);
+      // Only trigger on Delete key
+      if (e.key === "Delete") {
+        if (selectedRows.size > 0 && perms.can_delete) {
+          e.preventDefault();
+          setConfirmDeleteOpen(true);
+        }
       }
-    }
-  };
+    };
 
-  window.addEventListener("keydown", handleDeleteKey);
+    window.addEventListener("keydown", handleDeleteKey);
 
-  return () => {
-    window.removeEventListener("keydown", handleDeleteKey);
-  };
-}, [selectedRows.size, perms.can_delete]);
+    return () => {
+      window.removeEventListener("keydown", handleDeleteKey);
+    };
+  }, [selectedRows.size, perms.can_delete]);
 
-  
   useEffect(() => {
     const handleKeyPress = (e) => {
       const tag = document.activeElement?.tagName?.toLowerCase();
@@ -475,28 +473,26 @@ export default function InvalidDataPage({ user, onLogout }) {
 
   // filtering + pagination
   const filteredInvalid = invalidData.filter((item) => {
-  if (searchQuery) {
-  const q = searchQuery.toLowerCase()
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
 
-  if (
-    ![
-      item.id,
-      item.name,
-      item.department,
-      item.currentsalary,
-      item.kpiscore,
-      item.attendance,
-      item.behavioralrating,
-      item.managerrating
-    ]
-      .filter(Boolean)
-      .some((val) =>
-        String(val).toLowerCase().includes(q)
-      )
-  ) {
-    return false
-  }
-}
+      if (
+        ![
+          item.id,
+          item.name,
+          item.department,
+          item.currentsalary,
+          item.kpiscore,
+          item.attendance,
+          item.behavioralrating,
+          item.managerrating,
+        ]
+          .filter(Boolean)
+          .some((val) => String(val).toLowerCase().includes(q))
+      ) {
+        return false;
+      }
+    }
     if (departmentFilter && item.department !== departmentFilter) return false;
     if (gradeFilter && item.grade !== gradeFilter) return false;
     // invalid-specific filter mode
@@ -579,123 +575,121 @@ export default function InvalidDataPage({ user, onLogout }) {
     currentPage * pageSize,
   );
   const selectedIds = [...selectedRows];
- const contextActions = [];
- // 🔹 COPY AS EXCEL (single row)
-if (selectedIds.length === 1) {
-  contextActions.push({
-    label: "Copy as Excel",
-    icon: "📊",
-    onClick: () => {
-      const emp = sortedInvalid.find(i => i.id === selectedIds[0]);
-      if (!emp) return;
+  const contextActions = [];
+  // 🔹 COPY AS EXCEL (single row)
+  if (selectedIds.length === 1) {
+    contextActions.push({
+      label: "Copy as Excel",
+      icon: "📊",
+      onClick: () => {
+        const emp = sortedInvalid.find((i) => i.id === selectedIds[0]);
+        if (!emp) return;
 
-      const text =
-`ID\tName\tDepartment\tCurrent Salary\tKPI\tAttendance\tBehavior\tManager
+        const text = `ID\tName\tDepartment\tCurrent Salary\tKPI\tAttendance\tBehavior\tManager
 ${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.kpiscore ?? ""}\t${emp.attendance ?? ""}\t${emp.behavioralrating ?? ""}\t${emp.managerrating ?? ""}`;
 
-      navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(text);
 
-      setToast(`Copied ${emp.id} to Excel`);
-      setContextMenu({ visible: false, x: 0, y: 0 });
-    }
-  });
-}
- 
+        setToast(`Copied ${emp.id} to Excel`);
+        setContextMenu({ visible: false, x: 0, y: 0 });
+      },
+    });
+  }
 
-// 🔹 MULTIPLE → Export Selected
-if (selectedIds.length > 1) {
-  contextActions.push({
-    label: `Export Selected (${selectedIds.length})`,
-    icon: "📤",
-    onClick: () => {
-      const selectedRecords = sortedInvalid.filter(i =>
-        selectedIds.includes(i.id)
-      );
+  // 🔹 MULTIPLE → Export Selected
+  if (selectedIds.length > 1) {
+    contextActions.push({
+      label: `Export Selected (${selectedIds.length})`,
+      icon: "📤",
+      onClick: () => {
+        const selectedRecords = sortedInvalid.filter((i) =>
+          selectedIds.includes(i.id),
+        );
 
-      const headers = [
-        "ID",
-        "Name",
-        "Department",
-        "Current Salary",
-        "KPI",
-        "Attendance",
-        "Behavior",
-        "Manager",
-      ];
+        const headers = [
+          "ID",
+          "Name",
+          "Department",
+          "Current Salary",
+          "KPI",
+          "Attendance",
+          "Behavior",
+          "Manager",
+        ];
 
-      const rows = selectedRecords.map(i => [
-        i.id,
-        i.name,
-        i.department,
-        i.currentsalary,
-        i.kpiscore,
-        i.attendance,
-        i.behavioralrating,
-        i.managerrating,
-      ]);
+        const rows = selectedRecords.map((i) => [
+          i.id,
+          i.name,
+          i.department,
+          i.currentsalary,
+          i.kpiscore,
+          i.attendance,
+          i.behavioralrating,
+          i.managerrating,
+        ]);
 
-      const csv = [headers, ...rows]
-        .map(r => r.map(c => `"${c ?? ""}"`).join(","))
-        .join("\n");
+        const csv = [headers, ...rows]
+          .map((r) => r.map((c) => `"${c ?? ""}"`).join(","))
+          .join("\n");
 
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "selected_invalid.csv";
-      a.click();
-      URL.revokeObjectURL(url);
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "selected_invalid.csv";
+        a.click();
+        URL.revokeObjectURL(url);
 
-      setContextMenu({ visible: false, x: 0, y: 0 });
-    }
-  });
-}
+        setContextMenu({ visible: false, x: 0, y: 0 });
+      },
+    });
+  }
 
-// 🔹 DELETE (single or multi)
-if (selectedIds.length >= 1 && perms.can_delete) {
-  contextActions.push({
-    label:
-      selectedIds.length === 1
-        ? "Delete Record"
-        : `Delete Selected (${selectedIds.length})`,
-    icon: "🗑",
-    onClick: () => {
-      setConfirmDeleteOpen(true);
-      setContextMenu({ visible: false, x: 0, y: 0 });
-    }
-  });
-}
+  // 🔹 DELETE (single or multi)
+  if (selectedIds.length >= 1 && perms.can_delete) {
+    contextActions.push({
+      label:
+        selectedIds.length === 1
+          ? "Delete Record"
+          : `Delete Selected (${selectedIds.length})`,
+      icon: "🗑",
+      onClick: () => {
+        setConfirmDeleteOpen(true);
+        setContextMenu({ visible: false, x: 0, y: 0 });
+      },
+    });
+  }
   const totalPages = Math.max(1, Math.ceil(filteredInvalid.length / pageSize));
 
-useEffect(() => {
-  const handleSelectAll = (e) => {
-    const tag = document.activeElement?.tagName?.toLowerCase();
+  useEffect(() => {
+    const handleSelectAll = (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase();
 
-    if (tag === "input" || tag === "textarea" || tag === "select") return;
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
 
-    if (e.ctrlKey && e.key.toLowerCase() === "a") {
-      e.preventDefault();
+      if (e.ctrlKey && e.key.toLowerCase() === "a") {
+        e.preventDefault();
 
-      const currentPageIds = paginated.map(item => item.id);
+        const currentPageIds = paginated.map((item) => item.id);
 
-      setSelectedRows(prev => {
-        const allSelected = currentPageIds.every(id => prev.has(id));
+        setSelectedRows((prev) => {
+          const allSelected = currentPageIds.every((id) => prev.has(id));
 
-        if (allSelected) {
-          return new Set(); // deselect
-        }
+          if (allSelected) {
+            return new Set(); // deselect
+          }
 
-        return new Set(currentPageIds); // select all
-      });
-    }
-  };
+          return new Set(currentPageIds); // select all
+        });
+      }
+    };
 
-  window.addEventListener("keydown", handleSelectAll);
+    window.addEventListener("keydown", handleSelectAll);
 
-  return () => {
-    window.removeEventListener("keydown", handleSelectAll);
-  };
-}, [paginated]);
+    return () => {
+      window.removeEventListener("keydown", handleSelectAll);
+    };
+  }, [paginated]);
 
   useEffect(() => {
     const pages = Math.ceil(filteredInvalid.length / pageSize) || 1;
@@ -760,22 +754,23 @@ useEffect(() => {
           />
         </div>
         <h1 className="header-title">Invalid Data</h1>
-    <button
-      type="button"
-      className="theme-btn"
-      title="Press (T) to Toggle Theme"
-      onClick={handleToggleTheme}
-    >
-      <img src={themeIcon} alt="Theme" className="theme-icon" />
-    </button>
+        <button
+          type="button"
+          className="theme-btn"
+          title="Press (T) to Toggle Theme"
+          onClick={handleToggleTheme}
+        >
+          <img src={themeIcon} alt="Theme" className="theme-icon" />
+        </button>
         <UserMenu
           user={user}
+          role={role}
           onLogout={onLogout}
           onChangePassword={handleChangePassword}
           onAddUser={handleAddUser}
           onSetRole={handleSetRole}
           onDeleteUser={handleDeleteUser}
-          onActivityLog={role === "admin" ? () => navigate("/activity") : null}
+          onActivityLog={() => navigate("/activity")}
           onToggleTheme={handleToggleTheme}
         />
       </header>
@@ -788,15 +783,15 @@ useEffect(() => {
           transition={{ duration: 0.35 }}
         >
           <input
-  id="q"
-  type="search"
-  placeholder="Search ID, Name or Department"
-  value={searchQuery}
-  onChange={(e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  }}
-/>
+            id="q"
+            type="search"
+            placeholder="Search ID, Name or Department"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
           <select
             id="dept"
             value={departmentFilter}
@@ -849,27 +844,32 @@ useEffect(() => {
             Export CSV
           </button>
           <button
-  type="button"
-  onClick={fetchInvalid}
-  title="Refresh Data"
-  style={{ color: "aliceblue", display: "flex", alignItems: "center", justifyContent: "center" }}
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="23 4 23 10 17 10" />
-    <polyline points="1 20 1 14 7 14" />
-    <path d="M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0020.49 15" />
-  </svg>
-</button>
+            type="button"
+            onClick={fetchInvalid}
+            title="Refresh Data"
+            style={{
+              color: "aliceblue",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0020.49 15" />
+            </svg>
+          </button>
           <label
             id="invFilterWrap"
             className="inv-filter"
@@ -889,14 +889,14 @@ useEffect(() => {
             </select>
           </label>
           <span className="spacer"></span>
-                  <span className="record-count">
-          {filteredInvalid.length === 0
-            ? "No records found"
-            : `Showing ${(currentPage - 1) * pageSize + 1}–${Math.min(
-                currentPage * pageSize,
-                filteredInvalid.length
-              )} of ${filteredInvalid.length} records`}
-        </span>
+          <span className="record-count">
+            {filteredInvalid.length === 0
+              ? "No records found"
+              : `Showing ${(currentPage - 1) * pageSize + 1}–${Math.min(
+                  currentPage * pageSize,
+                  filteredInvalid.length,
+                )} of ${filteredInvalid.length} records`}
+          </span>
           <label>
             Rows:
             <select
@@ -966,11 +966,11 @@ useEffect(() => {
           />
         </motion.div>
         <ContextMenu
-  visible={contextMenu.visible}
-  x={contextMenu.x}
-  y={contextMenu.y}
-  actions={contextActions}
-/>
+          visible={contextMenu.visible}
+          x={contextMenu.x}
+          y={contextMenu.y}
+          actions={contextActions}
+        />
       </main>
       <Modal
         isOpen={modal.isOpen || showWeights}
@@ -1078,29 +1078,29 @@ useEffect(() => {
                   cursor: "pointer",
                 }}
                 onClick={async () => {
-  const idsToDelete = [...selectedRows];
+                  const idsToDelete = [...selectedRows];
 
-  const recordsToDelete = invalidData.filter(item =>
-    idsToDelete.includes(item.id)
-  );
+                  const recordsToDelete = invalidData.filter((item) =>
+                    idsToDelete.includes(item.id),
+                  );
 
-  // 1️⃣ Remove immediately from UI
-  setInvalidData(prev =>
-    prev.filter(item => !idsToDelete.includes(item.id))
-  );
+                  // 1️⃣ Remove immediately from UI
+                  setInvalidData((prev) =>
+                    prev.filter((item) => !idsToDelete.includes(item.id)),
+                  );
 
-  // 2️⃣ Store deleted records temporarily
-  setDeletedBuffer({
-    records: recordsToDelete,
-    ids: idsToDelete,
-  });
+                  // 2️⃣ Store deleted records temporarily
+                  setDeletedBuffer({
+                    records: recordsToDelete,
+                    ids: idsToDelete,
+                  });
 
-  setToast(`${idsToDelete.length} record(s) deleted`);
+                  setToast(`${idsToDelete.length} record(s) deleted`);
 
-  setSelectedRows(new Set());
-  setContextMenu({ visible: false, x: 0, y: 0 });
-  setConfirmDeleteOpen(false);
-}}
+                  setSelectedRows(new Set());
+                  setContextMenu({ visible: false, x: 0, y: 0 });
+                  setConfirmDeleteOpen(false);
+                }}
               >
                 Delete
               </button>
@@ -1109,48 +1109,45 @@ useEffect(() => {
         </Modal>
       )}
       {toast && (
-  <div
-    style={{
-      position: "fixed",
-      bottom: "100px",
-      right: "20px",
-      background: "#1f2937",
-      color: "white",
-      padding: "14px 20px",
-      borderRadius: "8px",
-      boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
-      display: "flex",
-      gap: "16px",
-      alignItems: "center",
-      zIndex: 9999,
-    }}
-  >
-    <span>{toast}</span>
+        <div
+          style={{
+            position: "fixed",
+            bottom: "100px",
+            right: "20px",
+            background: "#1f2937",
+            color: "white",
+            padding: "14px 20px",
+            borderRadius: "8px",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+            display: "flex",
+            gap: "16px",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <span>{toast}</span>
 
-    {deletedBuffer && (
-      <button
-        onClick={() => {
-          setInvalidData(prev => [
-            ...deletedBuffer.records,
-            ...prev,
-          ]);
+          {deletedBuffer && (
+            <button
+              onClick={() => {
+                setInvalidData((prev) => [...deletedBuffer.records, ...prev]);
 
-          setDeletedBuffer(null);
-          setToast(null);
-        }}
-        style={{
-          background: "transparent",
-          border: "none",
-          color: "#60a5fa",
-          cursor: "pointer",
-          fontWeight: "600",
-        }}
-      >
-        UNDO
-      </button>
-    )}
-  </div>
-)}
+                setDeletedBuffer(null);
+                setToast(null);
+              }}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#60a5fa",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              UNDO
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
