@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { formatINR } from "../utils";
 
 function EmployeeTable({
   employees,
@@ -31,11 +32,7 @@ function EmployeeTable({
   }, []);
   const formatMoney = (n) => {
     if (n === null || n === undefined) return "—";
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format(n);
+    return formatINR(n);
   };
 
   function highlight(text, query) {

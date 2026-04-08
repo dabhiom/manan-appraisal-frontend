@@ -14,6 +14,8 @@ import SetRoleForm from "../components/SetRoleForm";
 import { motion } from "framer-motion";
 import ContextMenu from "../components/ContextMenu";
 import themeIcon from "../../assets/icons/theme-color.png";
+import { formatINR } from "../utils";
+import FilterDropdown from "../components/FilterDropdown";
 
 export default function InvalidDataPage({ user, onLogout }) {
   const [invalidData, setInvalidData] = useState([]);
@@ -50,6 +52,7 @@ export default function InvalidDataPage({ user, onLogout }) {
     return () => clearTimeout(timer);
   }, [toast]);
   const [deletedBuffer, setDeletedBuffer] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -75,6 +78,9 @@ export default function InvalidDataPage({ user, onLogout }) {
     }
   };
 
+//   useEffect(() => {
+//   document.body.style.zoom = "0.8";
+// }, []);
   useEffect(() => {
     fetchInvalid();
   }, []);
@@ -700,19 +706,18 @@ ${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.kpi
   }, [filteredInvalid.length, pageSize, currentPage]);
 
   if (loading) {
-    console.log("INVALID PAGE PERMS:", perms);
     return (
       <div className="dashboard-page">
         <header>
           <div className="logo-wrap">
-            <Skeleton circle={true} height={42} width={42} />
+            <Skeleton circle={true} height={42} width={42} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
           </div>
-          <h1 style={{ margin: 0 }}>
-            <Skeleton height={22} width={140} />
-          </h1>
-          <div id="status" style={{ marginLeft: 8 }}>
-            <Skeleton height={14} width={60} />
+
+          <div style={{ display: "grid", gap: 8, minWidth: 0 }}>
+            <Skeleton height={22} width={140} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={14} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
           </div>
+
           <div
             style={{
               marginLeft: "auto",
@@ -721,18 +726,135 @@ ${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.kpi
               alignItems: "center",
             }}
           >
-            <Skeleton circle={true} height={28} width={28} />
-            <Skeleton height={36} width={80} />
+            <Skeleton circle={true} height={28} width={28} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={40} width={40} baseColor="var(--surface)" highlightColor="var(--surface-weak)" style={{ borderRadius: 12 }} />
           </div>
         </header>
 
-        <main style={{ padding: 20 }}>
-          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-            <Skeleton height={36} width={180} />
-            <Skeleton height={36} width={180} />
-            <Skeleton height={36} width={120} />
+        <main>
+          <section
+            id="controls"
+            style={{
+              alignItems: "center",
+              opacity: 0.95,
+            }}
+          >
+            <div style={{ flex: "1 1 320px", minWidth: 260 }}>
+              <Skeleton height={48} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            </div>
+
+            <Skeleton height={42} width={110} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={42} width={130} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={42} width={120} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={42} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={42} width={42} baseColor="var(--surface)" highlightColor="var(--surface-weak)" style={{ borderRadius: 12 }} />
+
+            <span className="spacer"></span>
+
+            <div style={{ display: "grid", gap: 8, justifyContent: "flex-end", minWidth: 220 }}>
+              <Skeleton height={16} width={180} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+              <div id="pager" style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                <Skeleton height={42} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                <Skeleton height={42} width={120} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                <Skeleton height={42} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="summary"
+            style={{
+              marginBottom: 16,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="card"
+                style={{
+                  minHeight: 118,
+                  padding: "18px 16px",
+                  display: "grid",
+                  gap: 10,
+                }}
+              >
+                <Skeleton height={14} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                <Skeleton height={34} width={140} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+              </div>
+            ))}
+          </section>
+
+          <div className="table-wrap" style={{ padding: "6px 0" }}>
+            <table id="employees">
+              <thead>
+                <tr>
+                  <th>
+                    <Skeleton height={16} width={40} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th>
+                    <Skeleton height={16} width={140} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th>
+                    <Skeleton height={16} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th className="num">
+                    <Skeleton height={16} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th className="num">
+                    <Skeleton height={16} width={60} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th className="num">
+                    <Skeleton height={16} width={80} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th className="num">
+                    <Skeleton height={16} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th className="num">
+                    <Skeleton height={16} width={80} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th>
+                    <Skeleton height={16} width={40} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 5 }).map((_, rowIndex) => (
+                  <tr key={rowIndex}>
+                    <td>
+                      <Skeleton height={16} width={36} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td>
+                      <Skeleton height={16} width={140} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td>
+                      <Skeleton height={16} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td className="num">
+                      <Skeleton height={16} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td className="num">
+                      <Skeleton height={16} width={60} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td className="num">
+                      <Skeleton height={16} width={80} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td className="num">
+                      <Skeleton height={16} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td className="num">
+                      <Skeleton height={16} width={80} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td>
+                      <Skeleton height={16} width={40} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <Skeleton count={10} height={42} style={{ marginTop: 15 }} />
         </main>
       </div>
     );
@@ -792,30 +914,49 @@ ${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.kpi
               setCurrentPage(1);
             }}
           />
-          <select
-            id="dept"
-            value={departmentFilter}
-            onChange={(e) => setDepartmentFilter(e.target.value)}
-          >
-            <option value="">All Departments</option>
-            {departments.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-          <select
-            id="grade"
-            value={gradeFilter}
-            onChange={(e) => setGradeFilter(e.target.value)}
-          >
-            <option value="">All Grades</option>
-            {grades.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
+          <div style={{ position: 'relative' }}>
+            <button
+  type="button"
+  onClick={() => setShowFilters(!showFilters)}
+  style={{
+    color: "aliceblue",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  }}
+>
+  Filters
+  <svg
+    style={{
+      transition: "transform 0.2s ease",
+      transform: showFilters ? "rotate(180deg)" : "rotate(0deg)"
+    }}
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+  >
+    <path d="M5 7l5 6 5-6" />
+  </svg>
+</button>
+            <FilterDropdown
+              isOpen={showFilters}
+              onClose={() => setShowFilters(false)}
+              departmentFilter={departmentFilter}
+              setDepartmentFilter={setDepartmentFilter}
+              gradeFilter={gradeFilter}
+              setGradeFilter={setGradeFilter}
+              pageSize={pageSize}
+              setPageSize={setPageSize}
+              departments={departments}
+              grades={grades}
+              showInvalidFilter={true}
+              invFilter={invFilter}
+              setInvFilter={setInvFilter}
+              setCurrentPage={setCurrentPage}
+            />
+          </div>
           <button
             id="weights"
             type="button"
@@ -870,24 +1011,6 @@ ${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.kpi
               <path d="M3.51 9a9 9 0 0114.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0020.49 15" />
             </svg>
           </button>
-          <label
-            id="invFilterWrap"
-            className="inv-filter"
-            style={{ marginLeft: "41px" }}
-          >
-            Invalid Filter:
-            <select
-              id="invFilter"
-              value={invFilter}
-              onChange={(e) => setInvFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="nulls">Null/Empty fields</option>
-              <option value="range">Out of range (0–100)</option>
-              <option value="nonnumeric">Non-numeric numeric fields</option>
-              <option value="numericText">Numeric-only text fields</option>
-            </select>
-          </label>
           <span className="spacer"></span>
           <span className="record-count">
             {filteredInvalid.length === 0
@@ -897,21 +1020,6 @@ ${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.kpi
                   filteredInvalid.length,
                 )} of ${filteredInvalid.length} records`}
           </span>
-          <label>
-            Rows:
-            <select
-              id="pageSize"
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-            </select>
-          </label>
           <div id="pager">
             <button
               id="prev"
@@ -1011,6 +1119,10 @@ ${emp.id}\t${emp.name}\t${emp.department}\t${emp.currentsalary ?? ""}\t${emp.kpi
                 <tr>
                   <th>Department</th>
                   <td>{modal.details.department}</td>
+                </tr>
+                <tr>
+                  <th>Current Salary</th>
+                  <td>{formatINR(modal.details.currentsalary)}</td>
                 </tr>
               </tbody>
             </table>
