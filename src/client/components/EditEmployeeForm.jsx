@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false }) {
   const [msg, setMsg] = useState('')
@@ -27,6 +27,31 @@ export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false
     const n = Number(val)
     return !isNaN(n) && n >= 0 && n <= 100
   }
+
+  useEffect(() => {
+    const cs = parseFloat(currentsalary)
+    const inc = parseFloat(increment)
+    if (!isNaN(cs) && !isNaN(inc)) {
+      const calc = +(cs * (1 + inc / 100)).toFixed(2)
+      setIncrementedSalary(String(calc))
+    } else {
+      setIncrementedSalary('')
+    }
+  }, [increment, currentsalary])
+
+  // map increment percent -> grade
+  useEffect(() => {
+    const inc = parseFloat(increment)
+    if (isNaN(inc)) return
+    let g = 'D'
+    if (inc > 15) g = 'A'
+    else if (inc >= 10) g = 'B'
+    else if (inc >= 5) g = 'C'
+    if (grade !== g) setGrade(g)
+  }, [increment])
+
+  // map grade -> increment percent (defaults)
+  
 
   const handleSubmitInvalid = async (e) => {
     e.preventDefault(); setMsg('')
@@ -159,13 +184,24 @@ export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false
       {errors.currentsalary && <div className="field-error">{errors.currentsalary}</div>}
 
       <label>Grade</label>
-      <input value={grade} onChange={e=>setGrade(e.target.value)} />
+      <select value={grade} onChange={e=>{
+        const g = (e.target.value || '').toString().trim().toUpperCase()
+        setGrade(g)
+        const map = { A: 15, B: 10, C: 5, D: 0 }
+        if (map[g] !== undefined) setIncrement(String(map[g]))
+      }}>
+        <option value="">--</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+      </select>
 
       <label>Increment %</label>
       <input type="number" step="0.01" value={increment} onChange={e=>setIncrement(e.target.value)} />
 
       <label>Incremented Salary</label>
-      <input type="number" step="0.01" value={incrementedsalary} onChange={e=>setIncrementedSalary(e.target.value)} />
+      <input type="number" disabled={true} step="0.01" value={incrementedsalary} />
 
       <div style={{ display:'flex', gap:8, alignItems:'center', marginTop:8 }}>
         <button className="btn" type="submit">Save</button>
