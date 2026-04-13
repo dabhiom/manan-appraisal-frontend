@@ -5,6 +5,7 @@ import incIcon from "../../assets/icons/avg-increment.png";
 import incSalaryIcon from "../../assets/icons/avg-incremented.png";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
+import { formatINR } from "../utils";
 
 function Summary({ employees }) {
   const stats = useMemo(() => {
@@ -46,13 +47,6 @@ function Summary({ employees }) {
     };
   }, [employees]);
 
-  const formatMoney = (n) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format(n);
-  };
   useEffect(() => {
     const cards = document.querySelectorAll("#summary .card");
 
@@ -111,7 +105,7 @@ function Summary({ employees }) {
 
   <div className="k">Avg Salary</div>
 <div className="v" id="sum-avg-sal">
-  $<CountUp end={stats.avgSalary} duration={1.7} separator="," decimals={0} />
+  <CountUp end={stats.avgSalary} duration={1.7} separator="," decimals={0} formattingFn={formatINR} />
 </div>
 </motion.div>
     <motion.div
@@ -141,7 +135,7 @@ function Summary({ employees }) {
 
   <div className="k">Avg Incremented</div>
 <div className="v" id="sum-avg-incsal">
-  $<CountUp end={stats.avgIncSalary} duration={1.7} separator="," decimals={0} />
+  <CountUp end={stats.avgIncSalary} duration={1.7} separator="," decimals={0} formattingFn={formatINR} />
 </div>
 </motion.div>
     </motion.section>

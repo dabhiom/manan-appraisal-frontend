@@ -3,25 +3,25 @@ import React, { useState, useEffect } from 'react'
 export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false }) {
   const [msg, setMsg] = useState('')
   const [errors, setErrors] = useState({})
-
+ 
   // common fields
   const [name, setName] = useState(data.name || '')
   const [department, setDepartment] = useState(data.department || '')
   const [currentsalary, setCurrentSalary] = useState(data.currentsalary || '')
-
+ 
   // invalid-data specific fields
   const [kpiscore, setKpiScore] = useState(data.kpiscore ?? '')
   const [attendance, setAttendance] = useState(data.attendance ?? '')
   const [behavioralrating, setBehavioralRating] = useState(data.behavioralrating ?? '')
   const [managerrating, setManagerRating] = useState(data.managerrating ?? '')
-
+ 
   // regular employee fields
   const [grade, setGrade] = useState(data.grade || '')
   const [increment, setIncrement] = useState(data.increment || '')
   const [incrementedsalary, setIncrementedSalary] = useState(data.incrementedsalary || '')
-
+ 
   const validateNumber = (val) => val === '' || val === null || val === undefined || !isNaN(Number(val))
-
+ 
   const validatePercentRange = (val) => {
     if (val === '' || val === null || val === undefined) return true
     const n = Number(val)
@@ -63,10 +63,10 @@ export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false
     if (!validatePercentRange(attendance)) errs.attendance = 'Must be 0–100'
     if (!validatePercentRange(behavioralrating)) errs.behavioralrating = 'Must be 0–100'
     if (!validatePercentRange(managerrating)) errs.managerrating = 'Must be 0–100'
-
+ 
     setErrors(errs)
     if (Object.keys(errs).length) return setMsg('Fix validation errors')
-
+ 
     try {
       const payload = {
         actor: localStorage.getItem('user'),
@@ -90,7 +90,7 @@ export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false
       setMsg(err.message)
     }
   }
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault(); setMsg('')
     const errs = {}
@@ -99,7 +99,7 @@ export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false
     if (currentsalary !== '' && !validateNumber(currentsalary)) errs.currentsalary = 'Invalid number'
     setErrors(errs)
     if (Object.keys(errs).length) return setMsg('Fix validation errors')
-
+ 
     try {
       const payload = {
         actor: localStorage.getItem('user'),
@@ -122,41 +122,41 @@ export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false
       setMsg(err.message)
     }
   }
-
+ 
   if (isInvalid) {
     return (
       <form className="card" style={{ padding: 12 }} onSubmit={handleSubmitInvalid}>
         <label>ID</label>
         <input value={data.id} readOnly />
-
+ 
         <label>Name</label>
         <input value={name} onChange={e=>setName(e.target.value)} />
         {errors.name && <div className="field-error">{errors.name}</div>}
-
+ 
         <label>Department</label>
         <input value={department} onChange={e=>setDepartment(e.target.value)} />
         {errors.department && <div className="field-error">{errors.department}</div>}
-
+ 
         <label>Current Salary</label>
         <input type="number" step="0.01" value={currentsalary} onChange={e=>setCurrentSalary(e.target.value)} />
         {errors.currentsalary && <div className="field-error">{errors.currentsalary}</div>}
-
+ 
         <label>KPI Score</label>
         <input type="number" step="0.01" value={kpiscore} onChange={e=>setKpiScore(e.target.value)} />
         {errors.kpiscore && <div className="field-error">{errors.kpiscore}</div>}
-
+ 
         <label>Attendance</label>
         <input type="number" step="0.01" value={attendance} onChange={e=>setAttendance(e.target.value)} />
         {errors.attendance && <div className="field-error">{errors.attendance}</div>}
-
+ 
         <label>Behavioral Rating</label>
         <input type="number" step="0.01" value={behavioralrating} onChange={e=>setBehavioralRating(e.target.value)} />
         {errors.behavioralrating && <div className="field-error">{errors.behavioralrating}</div>}
-
+ 
         <label>Manager Rating</label>
         <input type="number" step="0.01" value={managerrating} onChange={e=>setManagerRating(e.target.value)} />
         {errors.managerrating && <div className="field-error">{errors.managerrating}</div>}
-
+ 
         <div style={{ display:'flex', gap:8, alignItems:'center', marginTop:8 }}>
           <button className="btn" type="submit">Save</button>
           <span style={{ color: msg && msg.includes('Saved') ? '#22c55e' : '#ef4444' }}>{msg}</span>
@@ -165,24 +165,24 @@ export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false
       </form>
     )
   }
-
+ 
   return (
     <form className="card" style={{ padding: 12 }} onSubmit={handleSubmit}>
       <label>ID</label>
       <input value={data.id} readOnly />
-
+ 
       <label>Name</label>
       <input value={name} onChange={e=>setName(e.target.value)} />
       {errors.name && <div className="field-error">{errors.name}</div>}
-
+ 
       <label>Department</label>
       <input value={department} onChange={e=>setDepartment(e.target.value)} />
       {errors.department && <div className="field-error">{errors.department}</div>}
-
+ 
       <label>Current Salary</label>
       <input type="number" step="0.01" value={currentsalary} onChange={e=>setCurrentSalary(e.target.value)} />
       {errors.currentsalary && <div className="field-error">{errors.currentsalary}</div>}
-
+ 
       <label>Grade</label>
       <select value={grade} onChange={e=>{
         const g = (e.target.value || '').toString().trim().toUpperCase()
@@ -199,7 +199,7 @@ export default function EditEmployeeForm({ data = {}, onClose, isInvalid = false
 
       <label>Increment %</label>
       <input type="number" step="0.01" value={increment} onChange={e=>setIncrement(e.target.value)} />
-
+ 
       <label>Incremented Salary</label>
       <input type="number" disabled={true} step="0.01" value={incrementedsalary} />
 

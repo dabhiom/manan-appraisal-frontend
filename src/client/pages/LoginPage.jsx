@@ -1,330 +1,324 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import logo from "../pages/logo.png";
-import PasswordResetForm from '../components/PasswordResetForm'
+import PasswordResetForm from "../components/PasswordResetForm";
 
-import NProgress from "nprogress"
-import "nprogress/nprogress.css"
+import NProgress from "nprogress";
+import "nprogress/nprogress.css";
 
 function LoginPage({ onLogin }) {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [message, setMessage] = useState('')
-  const [isError, setIsError] = useState(false)
-  const [resetStage, setResetStage] = useState("idle")
-  const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [resetStage, setResetStage] = useState("idle");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setMessage('')
-    setIsError(false)
+    e.preventDefault();
+    setMessage("");
+    setIsError(false);
 
     try {
-       NProgress.start()
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      })
+      NProgress.start();
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: res.statusText }))
-        throw new Error(data.error || 'Login failed')
+        const data = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(data.error || "Login failed");
       }
 
-      
-      const serverRes = await fetch('/api/server-time')
-      const serverData = await serverRes.json()
+      const serverRes = await fetch("/api/server-time");
+      const serverData = await serverRes.json();
 
-      localStorage.setItem('serverStart', serverData.startTime)
-        NProgress.done()
+      localStorage.setItem("serverStart", serverData.startTime);
+      NProgress.done();
 
       setTimeout(() => {
-  onLogin(username)
-}, 300)
+        onLogin(username);
+      }, 300);
     } catch (err) {
-       NProgress.done()
-      setIsError(true)
-      setMessage(err.message)
+      NProgress.done();
+      setIsError(true);
+      setMessage(err.message);
     }
-  }
+  };
 
   const handleForgot = async (e) => {
-  e.preventDefault()
+    e.preventDefault();
 
-  if (!username.trim()) {
-    setIsError(true)
-    setMessage('Enter your username first')
-    return
-  }
-
-  try {
-    setMessage('')
-    setIsError(false)
-
-    const res = await fetch('/api/forgot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email })
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      throw new Error(data.error || 'User not found')
+    if (!username.trim()) {
+      setIsError(true);
+      setMessage("Enter your username first");
+      return;
     }
 
-    // ✅ ONLY OPEN RESET FORM IF USER EXISTS
-    setResetStage("request")
+    try {
+      setMessage("");
+      setIsError(false);
 
-  } catch (err) {
-    setIsError(true)
-    setMessage(err.message)
-  }
-}
+      const res = await fetch("/api/forgot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email }),
+      });
 
-const handleVerifyOtp = async () => {
-  if (!otp.trim()) {
-    setIsError(true)
-    setMessage("Enter OTP")
-    return
-  }
+      const data = await res.json();
 
-  try {
-    setIsError(false)
-    setMessage("")
+      if (!res.ok) {
+        throw new Error(data.error || "User not found");
+      }
 
-    const res = await fetch('/api/verify-otp', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ username, otp })
-    })
+      // ✅ ONLY OPEN RESET FORM IF USER EXISTS
+      setResetStage("request");
+    } catch (err) {
+      setIsError(true);
+      setMessage(err.message);
+    }
+  };
 
-    const data = await res.json()
-
-    if (!res.ok) {
-      throw new Error(data.error || "OTP invalid")
+  const handleVerifyOtp = async () => {
+    if (!otp.trim()) {
+      setIsError(true);
+      setMessage("Enter OTP");
+      return;
     }
 
-    // ✅ ONLY IF OTP CORRECT
-    setMessage("OTP verified")
-    setResetStage("reset")
+    try {
+      setIsError(false);
+      setMessage("");
 
-  } catch(err) {
-    setIsError(true)
-    setMessage(err.message)
-  }
-}
+      const res = await fetch("/api/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, otp }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "OTP invalid");
+      }
+
+      // ✅ ONLY IF OTP CORRECT
+      setMessage("OTP verified");
+      setResetStage("reset");
+    } catch (err) {
+      setIsError(true);
+      setMessage(err.message);
+    }
+  };
 
   const handleResetSuccess = (user) => {
     // Auto-login after successful password reset
-    onLogin(user)
-  }
+    onLogin(user);
+  };
 
   const handleResetCancel = () => {
-    setResetStage("idle")
-    setMessage('')
-    setPassword('')
-  }
+    setResetStage("idle");
+    setMessage("");
+    setPassword("");
+  };
 
   return (
-    <main style={{ padding: '20px', display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
-<div className="card" style={{ width: '360px', padding: '20px' }}>
-  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-    <img src={logo} alt="TecnoPrism" className="brand large" />
-  </div>
+    <main className="login-shell">
+      <div className="login-card card">
+        <div className="login-brand-wrap">
+          <img src={logo} alt="TecnoPrism" className="brand large login-brand" />
+        </div>
 
-  {/* ⭐ ADD THIS WRAPPER */}
-  <div>
-  {resetStage === "idle" ? (
+        <div className="login-content">
+          {resetStage === "idle" ? (
+            <form onSubmit={handleSubmit} className="login-form">
+              <div>
+                <h1 className="login-title">Sign In</h1>
+                <p className="login-subtitle">Secure access to your appraisal dashboard.</p>
+              </div>
 
-  <form onSubmit={handleSubmit}>
-    <h1 style={{ margin: '0 0 12px' }}>Sign In</h1>
+              <div className="login-field">
+                <label htmlFor="username">Username</label>
+                <input
+                  id="username"
+                  type="text"
+                  autoComplete="username"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="login-input"
+                />
+              </div>
 
-    <label htmlFor="username">Username</label>
-    <input
-      id="username"
-      type="text"
-      placeholder="username"
-      value={username}
-      onChange={(e) => setUsername(e.target.value)}
-      style={{ width: '100%', margin: '6px 0 12px', background: 'rgba(255,255,255,0.06)', color: 'var(--fg)', border: '1px solid var(--border)', padding: '8px 10px', borderRadius: '6px' }}
-    />
+              <div className="login-field">
+                <label htmlFor="password">Password</label>
+                <div className="login-input-group">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="login-input"
+                  />
+                  <button
+                    type="button"
+                    className="login-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.62 21.62 0 0 1 5-5.94" />
+                        <path d="M1 1l22 22" />
+                        <path d="M9.88 9.88a3 3 0 0 0 4.24 4.24" />
+                      </svg>
+                    ) : (
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
 
-    <label htmlFor="password">Password</label>
+              {message && (
+                <div className={`login-message ${isError ? "login-message--error" : "login-message--success"}`}>
+                  {message}
+                </div>
+              )}
 
-<div style={{ position: 'relative', marginBottom: '16px' }}>
-  <input
-    id="password"
-    type={showPassword ? 'text' : 'password'}
-    placeholder="password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    style={{
-      width: '100%',
-      background: 'rgba(255,255,255,0.06)',
-      color: 'var(--fg)',
-      border: '1px solid var(--border)',
-      padding: '8px 36px 8px 10px',
-      borderRadius: '6px'
-    }}
-  />
+              <button type="submit" className="btn btn-primary full-width">
+                Sign In
+              </button>
 
-  <span
-    onClick={() => setShowPassword(!showPassword)}
-    style={{
-      position: 'absolute',
-      right: '10px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      cursor: 'pointer',
-      userSelect: 'none'
-    }}
-  >
-    {showPassword ? '🙈' : '👁️'}
-  </span>
-</div>
+              <div className="login-footer">
+                <button type="button" onClick={handleForgot} className="login-link-button">
+                  Forgot password?
+                </button>
+              </div>
+            </form>
+          ) : resetStage === "request" ? (
+            <div className="login-form">
+              <h2 className="login-title">Reset Password</h2>
 
+              <div className="login-field">
+                <label htmlFor="reset-email">Email</label>
+                <input
+                  id="reset-email"
+                  type="email"
+                  placeholder="Enter registered email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="login-input"
+                />
+              </div>
 
-    {message && (
-      <div style={{ fontSize: '14px', marginBottom: '12px', color: isError ? '#ef4444' : '#22c55e' }}>
-        {message}
+              {message && (
+                <div className={`login-message ${isError ? "login-message--error" : "login-message--success"}`}>
+                  {message}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="btn btn-primary full-width"
+                onClick={async () => {
+                  if (!email.trim()) {
+                    setIsError(true);
+                    setMessage("Enter email");
+                    return;
+                  }
+
+                  try {
+                    setIsError(false);
+                    setMessage("");
+
+                    const res = await fetch("/api/send-otp", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ username, email }),
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) throw new Error(data.error || "OTP failed");
+
+                    setMessage("OTP sent to your email");
+                    setResetStage("otp");
+                  } catch (err) {
+                    setIsError(true);
+                    setMessage(err.message);
+                  }
+                }}
+              >
+                Send OTP
+              </button>
+
+              <button
+                type="button"
+                className="login-link-button"
+                onClick={() => setResetStage("idle")}
+              >
+                Back
+              </button>
+            </div>
+          ) : resetStage === "otp" ? (
+            <div className="login-form">
+              <h2 className="login-title">Enter OTP</h2>
+
+              <div className="login-field">
+                <label htmlFor="otp">OTP</label>
+                <input
+                  id="otp"
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="login-input"
+                />
+              </div>
+
+              <button className="btn btn-primary full-width" onClick={handleVerifyOtp}>
+                Verify OTP
+              </button>
+            </div>
+          ) : resetStage === "reset" ? (
+            <PasswordResetForm
+              username={username}
+              onSuccess={handleResetSuccess}
+              onCancel={handleResetCancel}
+            />
+          ) : null}
+        </div>
       </div>
-    )}
-
-    <button type="submit" className="btn" style={{ width: '100%' }}>Sign In</button>
-
-    <div style={{ marginTop: '10px' }}>
-      <button
-        type="button"
-        onClick={handleForgot}
-        style={{ color: '#60a5fa', background: 'none', border: 'none', cursor: 'pointer' }}
-      >
-        Forgot password?
-      </button>
-    </div>
-  </form>
-
-) : resetStage === "request" ? (
-
-  /* ✅ THIS WAS MISSING */
-  <div>
-    <h2>Reset Password</h2>
-
-    <label>Email</label>
-    <input
-      type="email"
-      placeholder="Enter registered email"
-      value={email}
-      onChange={(e)=>setEmail(e.target.value)}
-      style={{
-        width:'100%',
-        margin:'6px 0 16px',
-        background:'rgba(255,255,255,0.06)',
-        color:'var(--fg)',
-        border:'1px solid var(--border)',
-        padding:'8px 10px',
-        borderRadius:'6px'
-      }}
-    />
-    {message && (
-  <div
-    style={{
-      fontSize: "14px",
-      marginBottom: "12px",
-      color: isError ? "#ef4444" : "#22c55e"
-    }}
-  >
-    {message}
-  </div>
-)}
-
-    <button
-  type="button"
-  className="btn"
-  style={{width:'100%'}}
-  onClick={async () => {
-  if (!email.trim()) {
-    setIsError(true)
-    setMessage("Enter email")
-    return
-  }
-
-try {
-  setIsError(false)
-  setMessage("")
-
-  const res = await fetch('/api/send-otp', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ username, email })
-  })
-
-  const data = await res.json()
-
-  if (!res.ok) throw new Error(data.error || "OTP failed")
-
-  setMessage("OTP sent to your email")
-  setResetStage("otp")
-
-} catch(err) {
-  setIsError(true)
-  setMessage(err.message)
-}
-}}
->
-  Send OTP
-</button>
-
-    <button
-      type="button"
-      onClick={()=>setResetStage("idle")}
-      style={{marginTop:'10px'}}
-    >
-      Back
-    </button>
-  </div>
-
-) : resetStage === "otp" ? (
-  <>
-    <h2>Enter OTP</h2>
-
-    <input
-      type="text"
-      placeholder="Enter OTP"
-      value={otp}
-      onChange={(e) => setOtp(e.target.value)}
-      style={{
-        width: '100%',
-        margin: '10px 0',
-        background: 'rgba(255,255,255,0.06)',
-        color: 'var(--fg)',
-        border: '1px solid var(--border)',
-        padding: '8px 10px',
-        borderRadius: '6px'
-      }}
-    />
-
-    <button className="btn" onClick={handleVerifyOtp} style={{ width:'100%' }}>
-      Verify OTP
-    </button>
-  </>
-
-) : resetStage === "reset" ? (
-
-  <PasswordResetForm
-    username={username}
-    onSuccess={handleResetSuccess}
-    onCancel={handleResetCancel}
-  />
-
-) : null}
-  </div>
-</div>
-</main>
-  )
+    </main>
+  );
 }
 
-export default LoginPage
+export default LoginPage;

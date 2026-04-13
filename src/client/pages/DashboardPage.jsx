@@ -17,6 +17,8 @@ import { motion } from "framer-motion";
 import ContextMenu from "../components/ContextMenu";
 import ChatButton from "../components/ChatButton";  // chatbot UI
 import themeIcon from "../../assets/icons/theme-color.png";
+import { formatINR } from "../utils";
+import FilterDropdown from "../components/FilterDropdown";
 
 
 function DashboardPage({ user, onLogout }) {
@@ -62,6 +64,7 @@ function DashboardPage({ user, onLogout }) {
   return () => clearTimeout(timer);
 }, [toast]);
   const [deletedBuffer, setDeletedBuffer] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
   if (!deletedBuffer) return;
@@ -742,14 +745,14 @@ if (selectedIds.length >= 1 && perms.can_delete) {
       <div className="dashboard-page">
         <header>
           <div className="logo-wrap">
-            <Skeleton circle={true} height={42} width={42} />
+            <Skeleton circle={true} height={42} width={42} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
           </div>
-          <h1 style={{ margin: 0 }}>
-            <Skeleton height={22} width={180} />
-          </h1>
-          <div id="status" style={{ marginLeft: 8 }}>
-            <Skeleton height={14} width={60} />
+
+          <div style={{ display: "grid", gap: 8, minWidth: 0 }}>
+            <Skeleton height={22} width={180} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={14} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
           </div>
+
           <div
             style={{
               marginLeft: "auto",
@@ -758,18 +761,138 @@ if (selectedIds.length >= 1 && perms.can_delete) {
               alignItems: "center",
             }}
           >
-            <Skeleton circle={true} height={28} width={28} />
-            <Skeleton height={36} width={80} />
+            <Skeleton circle={true} height={28} width={28} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={40} width={40} baseColor="var(--surface)" highlightColor="var(--surface-weak)" style={{ borderRadius: 12 }} />
           </div>
         </header>
 
-        <main style={{ padding: 20 }}>
-          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-            <Skeleton height={36} width={180} />
-            <Skeleton height={36} width={180} />
-            <Skeleton height={36} width={120} />
+        <main>
+          <section
+            id="controls"
+            style={{
+              alignItems: "center",
+              opacity: 0.93,
+            }}
+          >
+            <div style={{ flex: "1 1 320px", minWidth: 260 }}>
+              <Skeleton height={48} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            </div>
+
+            <Skeleton height={42} width={110} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={42} width={110} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={42} width={110} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+            <Skeleton height={42} width={42} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+
+            <span className="spacer"></span>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 8,
+                justifyContent: "flex-end",
+                minWidth: 220,
+              }}
+            >
+              <Skeleton height={16} width={180} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+              <div
+                id="pager"
+                style={{ display: "inline-flex", gap: 8, alignItems: "center" }}
+              >
+                <Skeleton height={42} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                <Skeleton height={42} width={110} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                <Skeleton height={42} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="summary"
+            style={{
+              marginBottom: 16,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="card"
+                style={{
+                  minHeight: 118,
+                  padding: "18px 16px",
+                  display: "grid",
+                  gap: 10,
+                }}
+              >
+                <Skeleton height={14} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                <Skeleton height={34} width={140} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+              </div>
+            ))}
+          </section>
+
+          <div className="table-wrap" style={{ padding: "6px 0" }}>
+            <table id="employees">
+              <thead>
+                <tr>
+                  <th>
+                    <Skeleton height={16} width={40} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th>
+                    <Skeleton height={16} width={140} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th>
+                    <Skeleton height={16} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th className="num">
+                    <Skeleton height={16} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th>
+                    <Skeleton height={16} width={60} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th className="num">
+                    <Skeleton height={16} width={80} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th className="num">
+                    <Skeleton height={16} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                  <th>
+                    <Skeleton height={16} width={40} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 5 }).map((_, rowIndex) => (
+                  <tr key={rowIndex}>
+                    <td>
+                      <Skeleton height={16} width={36} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td>
+                      <Skeleton height={16} width={140} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td>
+                      <Skeleton height={16} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td className="num">
+                      <Skeleton height={16} width={90} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td>
+                      <Skeleton height={16} width={60} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td className="num">
+                      <Skeleton height={16} width={80} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td className="num">
+                      <Skeleton height={16} width={100} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                    <td>
+                      <Skeleton height={16} width={40} baseColor="var(--surface)" highlightColor="var(--surface-weak)" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <Skeleton count={10} height={42} style={{ marginTop: 15 }} />
         </main>
       </div>
     );
@@ -783,6 +906,7 @@ if (selectedIds.length >= 1 && perms.can_delete) {
             src={logo}
             alt="TecnoPrism"
             className="brand"
+            onClick={() => navigate("/")}   
             onError={(e) => e.target.remove()}
           />
         </div>
@@ -830,30 +954,46 @@ if (selectedIds.length >= 1 && perms.can_delete) {
     setCurrentPage(1)
   }}
 />
-          <select
-            id="dept"
-            value={departmentFilter}
-            onChange={(e) => setDepartmentFilter(e.target.value)}
-          >
-            <option value="">All Departments</option>
-            {departments.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
-          <select
-            id="grade"
-            value={gradeFilter}
-            onChange={(e) => setGradeFilter(e.target.value)}
-          >
-            <option value="">All Grades</option>
-            {grades.map((grade) => (
-              <option key={grade} value={grade}>
-                {grade}
-              </option>
-            ))}
-          </select>
+          <div style={{ position: 'relative' }}>
+            <button
+  type="button"
+  onClick={() => setShowFilters(!showFilters)}
+  style={{
+    color: "aliceblue",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  }}
+>
+  Filters
+  <svg
+    style={{
+      transition: "transform 0.2s ease",
+      transform: showFilters ? "rotate(180deg)" : "rotate(0deg)"
+    }}
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+  >
+    <path d="M5 7l5 6 5-6" />
+  </svg>
+</button>
+            <FilterDropdown
+              isOpen={showFilters}
+              onClose={() => setShowFilters(false)}
+              departmentFilter={departmentFilter}
+              setDepartmentFilter={setDepartmentFilter}
+              gradeFilter={gradeFilter}
+              setGradeFilter={setGradeFilter}
+              pageSize={pageSize}
+              setPageSize={setPageSize}
+              departments={departments}
+              grades={grades}
+              setCurrentPage={setCurrentPage}
+            />
+          </div>
           <button
             id="weights"
             type="button"
@@ -918,22 +1058,6 @@ if (selectedIds.length >= 1 && perms.can_delete) {
                   filteredEmployees.length
                 )} of ${filteredEmployees.length} employees`}
           </span>
-          <label>
-            Rows:
-            <select
-              id="pageSize"
-              value={pageSize}
-              onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-            </select>
-          </label>
           <div id="pager">
             <button
               id="prev"
@@ -1056,6 +1180,10 @@ if (selectedIds.length >= 1 && perms.can_delete) {
                 <tr>
                   <th>Department</th>
                   <td>{modal.details.department}</td>
+                </tr>
+                <tr>
+                  <th>Current Salary</th>
+                  <td>{formatINR(modal.details.currentsalary)}</td>
                 </tr>
               </tbody>
             </table>
